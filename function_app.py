@@ -3,7 +3,7 @@ import azure.functions as func
 import azure.durable_functions as df
 
 from typing import Union, Dict, Any
-from transcribe.assembly import transcribe_url as assembly_transcribe_url
+from transcribe import transcribe_url, generalize_transcript_data
 from metrics.sentiment import calc_sentiment, calc_sentence_sentiment
 from utils import upload_blob_stream
 
@@ -38,9 +38,16 @@ def analyse_orchestrator(context: df.DurableOrchestrationContext):
         first_retry_interval_in_milliseconds, max_number_of_attempts
     )
 
-    transcribe_payload = {"url": audio_url, "model": model, "_id": _id}
+    transcribe_payload = {
+        "url": audio_url,
+        "model": model,
+        "_id": _id,
+    }
     transcript_output = yield context.call_activity_with_retry(
         "transcribe_audio", retry_options, transcribe_payload
+    )
+    transcript_output = yield context.call_activity_with_retry(
+        "generalize_transcript", retry_options, transcript_output
     )
     transcript_output = yield context.call_activity_with_retry(
         "calculate_overall_sentiment", retry_options, transcript_output
@@ -66,15 +73,21 @@ def transcribe_audio(payload: Dict[str, str]) -> Union[str, None]:
     Transcribe audio using the model mentioned in the payload
     and returns the blob URL for the transcript file
     """
-    if payload.get("model", "assemblyai") == "assemblyai":
-        return assembly_transcribe_url(payload.get("url"), payload.get("_id"))
-    else:
-        return None
+    return transcribe_url(payload)
+
+
+@quadzApp.activity_trigger(input_name="transcriptOutput")
+def generalize_transcript(transcriptOutput: Dict[str, str]) -> Union[str, None]:
+    """
+    Transcribe audio using the model mentioned in the payload
+    and returns the blob URL for the transcript file
+    """
+    return generalize_transcript_data(transcriptOutput)
 
 
 @quadzApp.activity_trigger(input_name="transcriptOutput")
 def calculate_overall_sentiment(transcriptOutput: Dict[str, Any]) -> str:
-    if transcriptOutput.get("sentiment_score"):
+    if transcriptOutput.get("sentiment_score") is not None:
         return transcriptOutput
 
     transcriptOutput.update(

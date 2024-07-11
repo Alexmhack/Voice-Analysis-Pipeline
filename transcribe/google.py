@@ -1,39 +1,56 @@
 import os
-import json
+import ast
+import proto
 
-from google.cloud.speech_v2 import SpeechClient
-from google.cloud.speech_v2.types import cloud_speech
+from typing import Dict, Any
+from google.cloud import speech_v1p1beta1 as speech, storage
 
 
-def transcribe_model_selection_v2(
-    project_id: str,
-    model: str,
-    audio_file: str,
-) -> cloud_speech.RecognizeResponse:
-    """Transcribe an audio file."""
-    # Instantiates a client
-    client = SpeechClient.from_service_account_info(json.loads(os.getenv("GCP_SERVICE_ACCOUNT_INFO")))
-
-    # Reads a file as bytes
-    with open(audio_file, "rb") as f:
-        content = f.read()
-
-    config = cloud_speech.RecognitionConfig(
-        auto_decoding_config=cloud_speech.AutoDetectDecodingConfig(),
-        language_codes=["en-US"],
-        model=model,
+def transcribe_audio(
+    audio_path: str,
+) -> Dict[str, Any]:
+    gcp_service_account_info = ast.literal_eval(os.getenv("GCP_SERVICE_ACCOUNT_INFO"))
+    speech_client = speech.SpeechClient.from_service_account_info(
+        gcp_service_account_info
     )
 
-    request = cloud_speech.RecognizeRequest(
-        recognizer=f"projects/{project_id}/locations/global/recognizers/_",
-        config=config,
-        content=content,
+    # upload to GCP storage for speech purpose
+    storage_client = storage.Client.from_service_account_info(gcp_service_account_info)
+    bucket = storage_client.get_bucket(os.getenv("GCP_STORAGE_BUCKET_NAME"))
+    file_name = os.path.basename(audio_path)
+    blob = bucket.blob(file_name)
+    blob.upload_from_filename(audio_path)
+
+    gcs_uri = f"gs://{bucket.name}/{file_name}"
+    audio = speech.RecognitionAudio(uri=gcs_uri)
+
+    diarization_config = speech.SpeakerDiarizationConfig(
+        enable_speaker_diarization=True,
+        min_speaker_count=2,
+        max_speaker_count=10,
     )
 
-    # Transcribes the audio into text
-    response = client.recognize(request=request)
+    config = speech.RecognitionConfig(
+        # audio encoding not needed when using .wav file formats
+        # encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=8000,
+        language_code="en-US",
+        diarization_config=diarization_config,
+        enable_automatic_punctuation=True,
+    )
 
+    operation = speech_client.long_running_recognize(config=config, audio=audio)
+    response = operation.result(timeout=3600 * 3)
+
+    transcript = []
     for result in response.results:
-        print(f"Transcript: {result.alternatives[0].transcript}")
+        # The first alternative is the most likely one for this portion.
+        transcript.append(f"{result.alternatives[0].transcript}\n")
 
-    return response
+    response_dict = proto.Message.to_dict(response)
+    transcript_text = "".join(transcript)
+
+    return {
+        "text": transcript_text,
+        "json_response": response_dict,
+    }
