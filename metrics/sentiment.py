@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from openai import OpenAI
 
 
-def calc_sentiment(transcript_text: str) -> float:
+def calc_sentiment(transcript_text: str) -> Dict[str, float]:
     """Calculate sentiment by parsing the text from the transcript url and calling ChatGPT API"""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 

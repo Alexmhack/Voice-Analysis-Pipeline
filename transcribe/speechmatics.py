@@ -11,12 +11,8 @@ def transcribe_audio(audio_path: str) -> Dict[str, Any]:
     # Define transcription parameters
     conf = {
         "type": "transcription",
-        "transcription_config": {
-            "language": LANGUAGE
-        },
-        "language_identification_config": {
-            "low_confidence_action": "allow"
-        }
+        "transcription_config": {"language": LANGUAGE},
+        "language_identification_config": {"low_confidence_action": "allow"},
     }
 
     with BatchClient(API_KEY) as client:
@@ -34,9 +30,11 @@ def transcribe_audio(audio_path: str) -> Dict[str, Any]:
             speaker = tt_data["speaker"]
             start_time = result["start_time"]
             end_time = result["end_time"]
-            transcript_data.append({
-                "speaker": speaker,
-                "start": start_time,
-                "end": end_time,
-                "text": tt_data["content"]
-            })
+            transcript_data.append(
+                {
+                    "speaker": speaker,
+                    "start": start_time,
+                    "end": end_time,
+                    "text": tt_data["content"],
+                }
+            )

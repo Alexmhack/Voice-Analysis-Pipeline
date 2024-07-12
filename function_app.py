@@ -4,7 +4,7 @@ import azure.durable_functions as df
 
 from typing import Union, Dict, Any
 from transcribe import transcribe_url, generalize_transcript_data
-from metrics.sentiment import calc_sentiment, calc_sentence_sentiment
+from metrics import calc_sentiment, calc_sentence_sentiment, get_transcript_summary
 from utils import upload_blob_stream
 
 quadzApp = df.DFApp(http_auth_level=func.AuthLevel.ANONYMOUS)
@@ -57,6 +57,9 @@ def analyse_orchestrator(context: df.DurableOrchestrationContext):
     )
     transcript_output = yield context.call_activity_with_retry(
         "generate_wordcloud_data", retry_options, transcript_output
+    )
+    transcript_output = yield context.call_activity_with_retry(
+        "generate_summary", retry_options, transcript_output
     )
     blob_url = yield context.call_activity_with_retry(
         "store_updated_transcript", retry_options, transcript_output
@@ -116,6 +119,17 @@ def calculate_sentence_sentiment(transcriptOutput: str) -> str:
 @quadzApp.activity_trigger(input_name="transcriptOutput")
 def generate_wordcloud_data(transcriptOutput: str) -> str:
     """For now we are using the AssemblyAI's auto_highlights_result for wordcloud data"""
+    return transcriptOutput
+
+
+@quadzApp.activity_trigger(input_name="transcriptOutput")
+def generate_summary(transcriptOutput: str) -> str:
+    if transcriptOutput.get("summary"):
+        return transcriptOutput
+
+    transcriptOutput.update(
+        {"summary": get_transcript_summary(transcriptOutput.get("text")).get("summary")}
+    )
     return transcriptOutput
 
 
