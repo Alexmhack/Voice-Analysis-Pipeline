@@ -1,18 +1,13 @@
-import json
-
-from utils import upload_blob_stream
-
-
-def generalize_transcript_data(transcript_output: dict) -> dict:
-    _id = transcript_output.get("_id")
+def generalize_transcript(transcript_output: dict) -> dict:
     transcript_json = transcript_output.get("json_response")
+    transcript_text = transcript_output.get("text")
 
     # using assemblyai output as the generalized output
     model_used = transcript_output.get("model", "assemblyai")
 
     if model_used == "assemblyai":
         generalized_transcript_json = {
-            "text": transcript_json.get("text"),
+            "text": transcript_text,
             "utterances": transcript_json.get("utterances"),
             # assembly provides us with wordcloud data as well in `auto_highlights_result`
             "wordcloud": transcript_json.get("auto_highlights_result"),
@@ -20,7 +15,7 @@ def generalize_transcript_data(transcript_output: dict) -> dict:
     elif model_used == "google":
         generalized_transcript_json = {
             "utterances": [],
-            "text": transcript_output.get("text"),
+            "text": transcript_text,
             "wordcloud": [],
         }
         for tt_data in transcript_json.get("results", []):
@@ -42,7 +37,7 @@ def generalize_transcript_data(transcript_output: dict) -> dict:
     elif model_used == "azure":
         generalized_transcript_json = {
             "utterances": [],
-            "text": transcript_output.get("text"),
+            "text": transcript_text,
             "wordcloud": [],
         }
         for tt_data in transcript_json:
@@ -59,9 +54,5 @@ def generalize_transcript_data(transcript_output: dict) -> dict:
                 }
             )
 
-    generalized_transcript_json = json.dumps(generalized_transcript_json, indent=2)
-    # upload to azure blob storage
-    blob_url = upload_blob_stream(
-        generalized_transcript_json, f"{_id}_transcript.json", "transcripts"
-    )
-    return {"blob_url": blob_url, **transcript_output}
+    transcript_output["json_response"] = generalized_transcript_json
+    return transcript_output

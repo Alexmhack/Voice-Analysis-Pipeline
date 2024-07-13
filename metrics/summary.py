@@ -9,8 +9,6 @@ def get_transcript_summary(transcript_text: str) -> List[str]:
     """Generate summary by the given transcript text using ChatGPT API"""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    print("TRANSCRIPT TEXT:", transcript_text)
-
     example_data_schema = {
         "summary": [],
     }

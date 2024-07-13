@@ -1,21 +1,24 @@
-# This function is not intended to be invoked directly. Instead it will be
-# triggered by an HTTP starter function.
-# Before running this sample, please:
-# - create a Durable activity function (default name is "Hello")
-# - create a Durable HTTP starter function
-# - add azure-functions-durable to requirements.txt
-# - run pip install -r requirements.txt
-
-import logging
-import json
-
-from azure.durable_functions import DurableOrchestrationContext, Orchestrator
+from azure.durable_functions import (
+    DurableOrchestrationContext,
+    Orchestrator,
+    RetryOptions,
+)
 
 
 def orchestrator_function(context: DurableOrchestrationContext):
-    result1 = yield context.call_activity('Hello', "Tokyo")
-    result2 = yield context.call_activity('Hello', "Seattle")
-    result3 = yield context.call_activity('Hello', "London")
-    return [result1, result2, result3]
+    input_context = context.get_input()
+
+    first_retry_interval_in_milliseconds = 5000
+    max_number_of_attempts = 3
+
+    retry_options = RetryOptions(
+        first_retry_interval_in_milliseconds, max_number_of_attempts
+    )
+
+    blob_url = yield context.call_activity_with_retry(
+        "analysis", retry_options, input_context
+    )
+    return blob_url
+
 
 main = Orchestrator.create(orchestrator_function)
