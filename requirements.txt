@@ -4,11 +4,12 @@
 
 azure-functions
 azure-functions-durable
+azure-storage
+azure-cognitiveservices-speech
 assemblyai
 deepgram-sdk
 openai
 google-cloud-speech
-azure-cognitiveservices-speech
 speechmatics-python
 pydub
 wordcloud
