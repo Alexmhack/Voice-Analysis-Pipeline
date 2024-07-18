@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 import requests
 import urllib
 import contextlib
@@ -60,10 +61,10 @@ def download_audio_from_url(
             else custom_get(audio_url)
         )
         if resp.status_code not in [200, 201]:
-            print(f"File does not exist on Server {resp.status_code}")
+            logging.debug(f"File does not exist on Server {resp.status_code}")
             return False
         if not resp.content:
-            print(f"No contents found in audio file: {audio_url}")
+            logging.debug(f"No contents found in audio file: {audio_url}")
             return False
 
         try:
@@ -81,7 +82,7 @@ def download_audio_from_url(
                         urllib.parse.urlparse(params.get("filename")).path
                     )
         except Exception as e:
-            print(f"Error while getting filename from content dispositoin {e}")
+            logging.debug(f"Error while getting filename from content dispositoin {e}")
 
         _target_file_name = target_file_name
         if not _target_file_name:
@@ -107,11 +108,11 @@ def download_audio_from_url(
             and _is_correct_mime_type(target_file)
         ) or _is_complete_wav_file(target_file):
             return target_file
-        print("incomplete file")
+        logging.debug("incomplete file")
         os.remove(target_file)
         return False
     except Exception as e:
-        print(f"Unable to download audio file: {audio_url}, exception {e}")
+        logging.debug(f"Unable to download audio file: {audio_url}, exception {e}")
         return False
 
 
@@ -122,7 +123,7 @@ def get_wav_duration(wav):
             rate = fd.getframerate()
             return frames / float(rate)
     except wave.Error as e:
-        print(f"error occured while finding duration through wave {e}")
+        logging.debug(f"error occured while finding duration through wave {e}")
 
     try:
         sound = AudioSegment.from_file(wav)
