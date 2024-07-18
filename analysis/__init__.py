@@ -76,7 +76,7 @@ def store_updated_transcript(transcript_output: Dict[str, Any]) -> Dict[str, Any
 
 def call_callback_url(blob_url: str, callback_url: str) -> bool:
     response = requests.post(callback_url, json={"transcript_url": blob_url})
-    return response.json()
+    return response.content
 
 
 def main(payload: Dict[str, Any]):
