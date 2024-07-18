@@ -11,3 +11,4 @@ google-cloud-speech
 azure-cognitiveservices-speech
 speechmatics-python
 pydub
+wordcloud
