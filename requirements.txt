@@ -4,7 +4,7 @@
 
 azure-functions
 azure-functions-durable
-azure-storage
+azure-storage-blob
 azure-cognitiveservices-speech
 assemblyai
 deepgram-sdk
