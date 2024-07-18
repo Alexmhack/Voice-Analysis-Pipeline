@@ -52,8 +52,7 @@ def transcribe_url(payload: dict) -> dict:
         )
     else:
         raise RuntimeError(
-            f"Conversion to wav failed for Payload: {payload} with wav output: {wav_audio_output} "
-            f"and path exists: {wav_audio_exists}"
+            f"Conversion to wav failed for Payload: {payload} with wav output: {wav_audio_output}"
         )
 
     model_used = payload.get("model", "assemblyai")
