@@ -11,6 +11,7 @@ import subprocess
 
 from typing import Union
 from pydub import AudioSegment
+from pathlib import Path
 
 
 def _is_correct_mime_type(target_file: str) -> bool:
@@ -180,10 +181,11 @@ def convert_to_wav(audio_path: str) -> str:
 
     if ext != ".wav" or file_channels != channels:
         out_file = f"/tmp/{base_file}_converted.wav"
+        ffmpeg_path = Path(__file__).resolve().parent.parent / "dependencies" / "ffmpeg_lib" / "ffmpeg"
         command = (
-            f"ffmpeg -y -i '/tmp/{filename}' -ar {sample_rate} -ac {channels} '{out_file}'"
+            f"{ffmpeg_path} -y -i '/tmp/{filename}' -ar {sample_rate} -ac {channels} '{out_file}'"
             if sample_rate
-            else f"ffmpeg -y -i '/tmp/{filename}' -ac {channels} '{out_file}'"
+            else f"{ffmpeg_path} -y -i '/tmp/{filename}' -ac {channels} '{out_file}'"
         )
 
         completed_process = subprocess.run(command, shell=True)
