@@ -134,7 +134,8 @@ def get_wav_duration(wav):
 def clean_and_return(duration, wav_file, file):
     # remove original file
     try:
-        os.remove(file)
+        if wav_file != file:
+            os.remove(file)
     except Exception as e:
         pass
     return {"success": True, "duration": duration, "output": wav_file}
@@ -162,6 +163,8 @@ def convert_to_wav(audio_path: str) -> str:
     channels = 1
     filename = os.path.basename(audio_path)
     base_file, ext = os.path.splitext(filename)
+    out_file = f"/tmp/{os.path.basename(filename)}"
+
     if ext == ".wav":
         try:
             file_channels = get_num_channels(f"/tmp/{filename}")
@@ -187,7 +190,7 @@ def convert_to_wav(audio_path: str) -> str:
             os.remove(f"/tmp/{filename}")
             return {"success": False, "msg": "Not able to convert uploaded file to wav"}
 
-        duration = get_wav_duration(out_file)
+        duration = None  # get_wav_duration(out_file)
         return clean_and_return(duration, wav_file=out_file, file=f"/tmp/{filename}")
 
     if out_file is not None and os.path.normpath(
@@ -195,8 +198,8 @@ def convert_to_wav(audio_path: str) -> str:
     ) != os.path.normpath(out_file):
         shutil.copyfile(f"/tmp/{filename}", out_file)
 
-        duration = get_wav_duration(out_file)
+        duration = None  # get_wav_duration(out_file)
         return clean_and_return(duration, wav_file=out_file, file=f"/tmp/{filename}")
 
-    duration = get_wav_duration(out_file)
+    duration = None  # get_wav_duration(out_file)
     return clean_and_return(duration, wav_file=out_file, file=f"/tmp/{filename}")

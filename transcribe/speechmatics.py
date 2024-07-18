@@ -1,4 +1,5 @@
 import os
+import logging
 
 from typing import Dict, Any
 from speechmatics.batch_client import BatchClient
@@ -17,7 +18,9 @@ def transcribe_audio(audio_path: str) -> Dict[str, Any]:
 
     with BatchClient(API_KEY) as client:
         job_id = client.submit_job(audio_path, transcription_config=conf)
-        print(f"job {job_id} submitted successfully, waiting for transcript")
+        logging.debug(
+            f"Speechmatics job {job_id} submitted successfully, waiting for transcript"
+        )
 
         # Note that in production, you should set up notifications instead of polling.
         # Notifications are described here: https://docs.speechmatics.com/features-other/notifications

@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import logging
 import azure.cognitiveservices.speech as speechsdk
 
 
@@ -40,7 +41,7 @@ def transcribe_audio(audio_path: str, **kwargs):
     done = False
 
     def stop_cb(evt):
-        print("CLOSING on {}".format(evt))
+        logging.debug("CLOSING on {}".format(evt))
         conversation_transcriber.stop_transcribing_async()
         nonlocal done
         done = True
@@ -50,16 +51,16 @@ def transcribe_audio(audio_path: str, **kwargs):
     def handle_transcribed_event(evt):
         all_results.append(evt.result)
 
-    # conversation_transcriber.recognizing.connect(lambda evt: print('RECOGNIZING: {}'.format(evt)))
+    # conversation_transcriber.recognizing.connect(lambda evt: logging.debug('RECOGNIZING: {}'.format(evt)))
     conversation_transcriber.transcribed.connect(handle_transcribed_event)
     conversation_transcriber.session_started.connect(
-        lambda evt: print("SESSION STARTED: {}".format(evt))
+        lambda evt: logging.debug("SESSION STARTED: {}".format(evt))
     )
     conversation_transcriber.session_stopped.connect(
-        lambda evt: print("SESSION STOPPED {}".format(evt))
+        lambda evt: logging.debug("SESSION STOPPED {}".format(evt))
     )
     conversation_transcriber.canceled.connect(
-        lambda evt: print("CANCELED {}".format(evt))
+        lambda evt: logging.debug("CANCELED {}".format(evt))
     )
 
     conversation_transcriber.session_stopped.connect(stop_cb)
