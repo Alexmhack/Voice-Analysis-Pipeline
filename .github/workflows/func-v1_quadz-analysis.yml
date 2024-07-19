@@ -5,9 +5,9 @@
 name: Build and deploy Python project to Azure Function App - quadz-analysis
 
 on:
-  # push:
-  #   branches:
-  #     - func-v1
+  push:
+    branches:
+      - func-v1
   workflow_dispatch:
 
 env:
