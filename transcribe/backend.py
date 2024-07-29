@@ -57,7 +57,9 @@ def transcribe_url(payload: dict) -> dict:
 
     model_used = payload.get("model", "assemblyai")
 
-    logging.info(f"Starting transcription with model: {model_used} and payload: {payload}")
+    logging.info(
+        f"Starting transcription with model: {model_used} and payload: {payload}"
+    )
     # by default transcript service is `assemblyai` if no model passed
     if model_used == "assemblyai":
         return {**payload, **assembly_transcribe_audio(wav_audio_path)}

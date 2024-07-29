@@ -181,7 +181,12 @@ def convert_to_wav(audio_path: str) -> str:
 
     if ext != ".wav" or file_channels != channels:
         out_file = f"/tmp/{base_file}_converted.wav"
-        ffmpeg_path = Path(__file__).resolve().parent.parent / "dependencies" / "ffmpeg_lib" / "ffmpeg"
+        ffmpeg_path = (
+            Path(__file__).resolve().parent.parent
+            / "dependencies"
+            / "ffmpeg_lib"
+            / "ffmpeg"
+        )
         command = (
             f"{ffmpeg_path} -y -i '/tmp/{filename}' -ar {sample_rate} -ac {channels} '{out_file}'"
             if sample_rate

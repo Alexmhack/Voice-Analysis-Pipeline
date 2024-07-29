@@ -6,9 +6,12 @@ from utils import upload_blob_stream
 def generalize_transcript(transcript_output: dict) -> dict:
     transcript_json = transcript_output.get("json_response")
     transcript_text = transcript_output.get("text")
+    force = transcript_output.get("force")
 
     # don't generalize, use cached data instead
-    if isinstance(transcript_json, dict) and transcript_json.get("generalized"):
+    if isinstance(transcript_json, dict) and (
+        transcript_json.get("generalized") and not force
+    ):
         return transcript_output
 
     # using assemblyai output as the generalized output
@@ -49,8 +52,8 @@ def generalize_transcript(transcript_output: dict) -> dict:
         for tt_data in transcript_json:
             transcript_text = tt_data["DisplayText"]
             speaker = tt_data["SpeakerId"]
-            start = tt_data["Offset"] / 1000  # convert this to proper seconds
-            end = (tt_data["Offset"] + tt_data["Duration"]) / 1000  # convert
+            start = tt_data["Offset"] / 10000  # convert this to proper seconds
+            end = (tt_data["Offset"] + tt_data["Duration"]) / 10000  # convert
             generalized_transcript_json["utterances"].append(
                 {
                     "text": transcript_text,
